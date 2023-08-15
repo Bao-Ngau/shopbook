@@ -91,11 +91,17 @@ class AuthController extends Controller
             $errors = $ex->validator->getMessageBag();
             return response()->json(['error' => $errors], 401);
         }
-        $input = $request->all();
-        $user = User::where('email', $input['email'])->first();
-        // if () {
-        //     # code...
-        // }
+        $user = User::where('email', $request['email'])->first();
+        if ($request['email_code'] === $user->email_code) {
+            $user->update([
+                'password' => bcrypt($request['password']),
+                'email_code' => '',
+            ]);
+        } else {
+            return response()->json([
+                'error' => 'mã code không đúng',
+            ], 401);
+        }
         return response()->json([
             'user' => $user,
         ], 200);
