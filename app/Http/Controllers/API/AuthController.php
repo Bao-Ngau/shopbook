@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -28,15 +29,16 @@ class AuthController extends Controller
             ]);
         } catch (ValidationException $ex) {
             $errors = $ex->validator->getMessageBag();
-            return response()->json(['errors' => $errors], 401);
+            return response()->json(['message' => $errors], 401);
         }
 
         $input = $request->all();
         if (!$token = auth()->attempt(['email' => $input['email'], 'password' => $input['password']])) {
-            return response()->json(['error' => 'Unauthorized'], 402);
+            return response()->json(['error' => 'Nhập sai tài khoản hoặc mật khẩu'], 402);
         }
 
         return response()->json([
+            'message' => 'Đăng nhập thành công',
             'access_token' => $this->createToken($token),
         ], 200);
     }
@@ -45,7 +47,7 @@ class AuthController extends Controller
         try {
             $request->validate([
                 'name_user' => 'required|between:6,100',
-                'email' => 'required|unique:users|regex:/^([\w]*[\w\.]*(?!\.)@gmail\.com)$/',
+                'email' => 'required|unique:users,email|regex:/^([\w]*[\w\.]*(?!\.)@gmail\.com)$/',
                 'password' => 'required|min:6|confirmed'
             ], [
                 'name_user.required' => 'Nhập trường tên tài khoản',
@@ -59,7 +61,7 @@ class AuthController extends Controller
             ]);
         } catch (ValidationException $ex) {
             $errors = $ex->validator->getMessageBag();
-            return response()->json(['errors' => $errors], 401);
+            return response()->json(['message' => $errors], 401);
         }
         $user = User::create([
             'name_user' => $request['name_user'],
@@ -69,7 +71,6 @@ class AuthController extends Controller
         ]);
         return response()->json([
             'message' => 'Đăng ký mật khẩu thành công',
-            'user' => $user,
         ], 200);
     }
     public function forgotPassword(Request $request)
@@ -89,7 +90,7 @@ class AuthController extends Controller
             ]);
         } catch (ValidationException $ex) {
             $errors = $ex->validator->getMessageBag();
-            return response()->json(['error' => $errors], 401);
+            return response()->json(['message' => $errors], 401);
         }
         $user = User::where('email', $request['email'])->first();
         if ($request['email_code'] === $user->email_code) {
@@ -99,14 +100,19 @@ class AuthController extends Controller
             ]);
         } else {
             return response()->json([
-                'error' => 'mã code không đúng',
+                'message' => 'mã code không đúng',
             ], 401);
         }
         return response()->json([
-            'user' => $user,
+            'message' => 'Đổi mật khẩu thành công',
         ], 200);
     }
-
+    public function userProfile()
+    {
+        return response()->json(
+            auth()->user()
+        );
+    }
     public function createToken($token)
     {
         return response()->json([
