@@ -17,17 +17,20 @@ return new class extends Migration
             $table->id();
             $table->string('name_book')->nullable(false);
             $table->string('image_book');
-            $table->text('description')->nullable(false);
-            $table->unsignedBigInteger('author_id')->nullable(false);
-            $table->unsignedBigInteger('category_id')->nullable(false);
+            $table->text('description')->nullable(true);
+            $table->text('advantage')->nullable(true);
+            $table->unsignedBigInteger('author_id')->nullable(true);
+            $table->unsignedBigInteger('category_id')->nullable(true);
+            $table->integer('count_book')->default(0);
             $table->integer('price')->nullable(false);
-            $table->integer('sale')->nullable(false);
+            $table->integer('sale')->default(0);
             $table->integer('price_sale')->nullable(false);
-            $table->boolean('status_book')->default(0);
-            $table->dateTime('create_date_book')->nullable(false);
-            $table->string('create_by_book', 50)->nullable(false);
-            $table->dateTime('updated_date_book');
-            $table->string('updated_at_book', 50);
+            $table->integer('sold')->default(0);
+            $table->boolean('status_book')->default(1);
+            $table->dateTime('create_date_book');
+            $table->string('create_by_book', 50);
+            $table->dateTime('updated_date_book')->nullable(true);
+            $table->string('updated_at_book', 50)->nullable(true);
         });
     }
 

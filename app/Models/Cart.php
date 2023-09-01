@@ -12,6 +12,16 @@ class Cart extends Model
     use HasFactory;
     protected $table = 'carts';
     protected $primaryKey = 'id';
+    protected $fillable = [
+        'book_id',
+        'user_id',
+        'quantity',
+        'status_cart',
+        'pay_id',
+        'total_money',
+        'created_date_cart',
+        'created_by_cart',
+    ];
     public $timestamps = false;
 
     public function user(): HasMany

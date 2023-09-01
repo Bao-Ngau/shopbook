@@ -7,14 +7,11 @@ use App\Models\Author;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-use function PHPUnit\Framework\isEmpty;
-use function PHPUnit\Framework\isNull;
-
 class AuthorController extends Controller
 {
-    public function index()
+    public function index($pageSize, $currentPage)
     {
-        $authors = Author::all();
+        $authors = Author::Paginate($pageSize, ['*'], 'page', $currentPage);
         return response([
             'authors' => $authors,
         ]);
@@ -23,10 +20,11 @@ class AuthorController extends Controller
     {
         try {
             $request->validate([
-                'name:' => 'required|max:255|unique:author,name',
+                'name_author' => 'required|max:255|unique:authors,name_author',
             ], [
-                'name.required' => 'Nhập trường tên tác giả',
-                'name.max' => 'Tên tác giả chỉ có 255 kí tự '
+                'name_author.required' => 'Nhập trường tên tác giả',
+                'name_author.unique' => 'Tên tác giả đã tồn tại',
+                'name_author.max' => 'Tên tác giả chỉ có 255 kí tự'
             ]);
         } catch (ValidationException $ex) {
             $error = $ex->validator->getMessageBag();
@@ -35,7 +33,7 @@ class AuthorController extends Controller
             ], 401);
         }
         $author = Author::create([
-            'name' => $request['name'],
+            'name_author' => $request['name_author'],
         ]);
         return response()->json([
             'message' => 'Thêm tác giả thành công',
@@ -46,11 +44,11 @@ class AuthorController extends Controller
     {
         try {
             $request->validate([
-                'name:' => 'required|max:255|unique:author,name,' . $request->id . ',id',
+                'name_author' => 'required|max:255|unique:authors,name_author,' . $request->id . ',id',
             ], [
-                'name.required' => 'Nhập trường tên tác giả',
-                'name.max' => 'Tên tác giả chỉ có 255 kí tự',
-                'name.unique' => 'Tên tác giả đã tồn tại',
+                'name_author.required' => 'Nhập trường tên tác giả',
+                'name_author.max' => 'Tên tác giả chỉ có 255 kí tự',
+                'name_author.unique' => 'Tên tác giả đã tồn tại',
             ]);
         } catch (ValidationException $ex) {
             $error = $ex->validator->getMessageBag();
@@ -61,7 +59,7 @@ class AuthorController extends Controller
         if ($request['id']) {
             $author = Author::find($request['id']);
             $author->update([
-                'name' => $request['name'],
+                'name_author' => $request['name_author'],
             ]);
         } else {
             return response()->json([
@@ -69,34 +67,45 @@ class AuthorController extends Controller
             ], 401);
         }
         return response()->json([
-            'message' => 'Thêm tác giả thành công',
+            'message' => 'Sửa tác giả thành công',
             'author' => $author
         ], 200);
     }
     public function delete(Request $request)
     {
-        if ($request['id'] . isEmpty() && $request['sreach'] . isNull()) {
-            return response()->json([
-                'message' => 'Không có id của tác giả',
-            ], 401);
-        }
         $author = Author::find($request['id'])->delete();
         return response()->json([
             'message' => 'Xóa tác giả thành công',
             'author' => $author
         ], 200);
     }
-    public function sreach(Request $request)
+    public function search(Request $request)
     {
-        if ($request['sreach'] . isEmpty() && $request['sreach'] . isNull()) {
+        try {
+            $request->validate([
+                'name_author' => 'required',
+            ], [
+                'name_author.required' => 'Nhập tên giả để tìm kiếm',
+            ]);
+        } catch (ValidationException $ex) {
+            $error = $ex->validator->getMessageBag();
             return response()->json([
-                'message' => 'Không có id của tác giả để tìm kiếm',
+                'message' => $error,
             ], 401);
-        }
-        $authors = Author::where('name', 'LIKE', '%' . $request['sreach'] . '%')->get();
+        };
+        $authors = Author::where('name_author', 'LIKE', '%' . $request['name_author'] . '%')->paginate($request['pageSize'], ['*'], 'page', $request['currentPage']);
+
         return response()->json([
             'message' => 'Tìm kiếm tác giả thành công',
             'authors' => $authors
+        ], 200);
+    }
+    public function getIdAndName()
+    {
+        $authors = Author::select('id', 'name_author')->get();
+        return response()->json([
+            'message' => 'Lấy dữ(id,name) liệu thành công',
+            'authors' => $authors,
         ], 200);
     }
 }

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -33,10 +32,16 @@ class AuthController extends Controller
         }
 
         $input = $request->all();
+        $statusUser = User::select('status_user')->where('email', $input['email'])->first();
         if (!$token = auth()->attempt(['email' => $input['email'], 'password' => $input['password']])) {
-            return response()->json(['error' => 'Nhập sai tài khoản hoặc mật khẩu'], 402);
+            return response()->json([
+                'message' => 'Đăng nhâp thất bại, sai tài khoản hoặc mật khẩu'
+            ], 402);
+        } else if (!$statusUser->status_user) {
+            return response()->json([
+                'message' => 'Tài khoản bạn đã bị xóa',
+            ], 402);
         }
-
         return response()->json([
             'message' => 'Đăng nhập thành công',
             'access_token' => $this->createToken($token),
@@ -51,7 +56,7 @@ class AuthController extends Controller
                 'password' => 'required|min:6|confirmed'
             ], [
                 'name_user.required' => 'Nhập trường tên tài khoản',
-                'name_user.betwwen' => 'Trường có chỉ từ 6 đến 100 kí tự',
+                'name_user.between' => 'Trường có chỉ từ 6 đến 100 kí tự',
                 'email.required' => 'Nhập trường email',
                 'email.unique' => 'Email này đã tồn tại',
                 'email.regex' => 'Nhập đúng dạng email vd: vidu@gmail.com',
@@ -96,7 +101,7 @@ class AuthController extends Controller
         if ($request['email_code'] === $user->email_code) {
             $user->update([
                 'password' => bcrypt($request['password']),
-                'email_code' => '',
+                'email_code' => null,
             ]);
         } else {
             return response()->json([
@@ -117,10 +122,10 @@ class AuthController extends Controller
     {
         return response()->json([
             'token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
+            'token_type' => 'Bearer',
+            'expires_in' => auth()->factory()->getTTL(),
             'user' => auth()->user(),
-        ]);
+        ], 200);
     }
     public function refresh()
     {

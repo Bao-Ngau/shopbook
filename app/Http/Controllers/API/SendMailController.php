@@ -22,7 +22,7 @@ class SendMailController extends Controller
             ]);
         } catch (ValidationException $ex) {
             $errors = $ex->validator->getMessageBag();
-            return response()->json(['error' => $errors], 401);
+            return response()->json(['message' => $errors], 401);
         }
         $random = rand(100000, 999999);
         $mailData = [
@@ -39,7 +39,7 @@ class SendMailController extends Controller
             );
         } else {
             return response()->json([
-                'message' => 'Gửi mail thất bại, email chưa được đang ký',
+                'message' => 'Gửi mail thất bại, email chưa được đăng ký',
             ], 401);
         }
         return response()->json([

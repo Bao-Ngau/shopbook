@@ -42,7 +42,6 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $hidden = [
-        'email',
         'password',
         'refesh_token',
         'email_code'
@@ -70,7 +69,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function hasRole($roleName)
     {
-        return $this->role->name_roles === $roleName;
+        return $this->role->name_role === $roleName;
     }
     public function role(): HasOne
     {

@@ -18,11 +18,11 @@ return new class extends Migration
             $table->unsignedBigInteger('book_id')->nullable(false);
             $table->unsignedBigInteger('user_id')->nullable(false);
             $table->integer('quantity')->default(1);
-            $table->string('status_cart', 30)->nullable(false);
-            $table->unsignedBigInteger('pay_id');
-            $table->integer('total_money');
+            $table->integer('status_cart')->default(0)->nullable(false);
+            $table->unsignedBigInteger('pay_id')->default(1);
+            $table->integer('total_money')->default(0);
             $table->dateTime('created_date_cart')->nullable(false);
-            $table->dateTime('created_by_cart');
+            $table->dateTime('created_by_cart')->nullable(true);
         });
     }
 
